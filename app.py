@@ -1,186 +1,194 @@
 import streamlit as st
-import google.generativeai as genai
-import time
-import random
+import requests
+import base64
 
-# =========================
-# PAGE CONFIG
-# =========================
-st.set_page_config(
-    page_title="VibeChecker",
-    page_icon="🎵",
-    layout="wide"
-)
+# --- 1. SETUP PAGE CONFIG ---
+st.set_page_config(page_title="VibeChecker", page_icon="🎵", layout="centered")
 
-# =========================
-# LOAD CSS
-# =========================
+# --- 2. IMAGE LOADER ---
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# --- 3. CUSTOM CSS ---
 try:
-    with open("style.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-except FileNotFoundError:
-    st.warning("⚠️ style.css not found. Put it in the same folder as app.py")
+    img_base64 = get_base64_of_bin_file("background.jpeg")
+    background_style = f"""
+        <style>
+        .stApp {{
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("data:image/jpeg;base64,{img_base64}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
+        </style>
+    """
+except:
+    background_style = "<style>.stApp { background-color: #0E1117; }</style>"
 
+st.markdown(background_style, unsafe_allow_html=True)
 
-# Floating icons
 st.markdown("""
-<div class="floating-icon">🎵</div>
-<div class="floating-icon2">✨</div>
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    .title-text {
+        font-size: 80px;
+        font-weight: 900;
+        background: -webkit-linear-gradient(45deg, #00d2ff, #3a7bd5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        line-height: 1.1;
+        padding-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .subtitle-text {
+        text-align: center;
+        font-size: 20px;
+        color: #ddd;
+        margin-bottom: 40px;
+        text-shadow: 1px 1px 2px black;
+    }
+    
+    .stButton button {
+        width: 100%;
+        border-radius: 12px;
+        height: 60px;
+        font-size: 16px;
+        font-weight: 600;
+        border: 1px solid #333;
+        background-color: rgba(0, 0, 0, 0.6); 
+        color: white;
+        transition: all 0.3s;
+        backdrop-filter: blur(5px);
+    }
+    
+    .stButton button:hover {
+        border-color: #00d2ff;
+        color: #00d2ff;
+        transform: scale(1.02);
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# GEMINI CONFIG (DIRECT KEY – NOT SAFE FOR PUBLIC GITHUB)
-# =========================
-API_KEY = "AIzaSyCcLnWQKXNh-iqs2ppXJTPak7NWVFAbBqg"  # your key
+# --- 4. API SETUP ---
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except:
+    st.error("⚠️ API Key missing! Check your Secrets.")
+    st.stop()
 
-genai.configure(api_key=API_KEY)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-MODEL_NAME = "gemini-1.0-pro"   # <- one model name, used everywhere
+# --- 5. THE BRAIN (Now with Memory!) ---
+def get_vibe_check():
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    
+    # 1. BUILD HISTORY
+    conversation_history = []
+    for msg in st.session_state.messages:
+        role = "user" if msg["role"] == "user" else "model"
+        conversation_history.append({"role": role, "parts": [{"text": msg["content"]}]})
 
-def get_model():
-    return genai.GenerativeModel(MODEL_NAME)
-
-
-# =========================
-# AI HELPERS
-# =========================
-def validate_mood_input(user_text: str) -> bool:
-    model = get_model()
-
-    prompt = f"""
-    The user said: "{user_text}"
-
-    Decide if this text expresses a mood or emotion.
-    Reply ONLY "YES" or ONLY "NO".
-    """
-
-    try:
-        response = model.generate_content(prompt)
-        text = (response.text or "").strip().upper()
-        return text.startswith("YES")
-    except Exception as e:
-        st.error(f"Validation error: {e}")
-        return False
-
-
-def generate_playlist(mood_text: str):
-    model = get_model()
-
-    prompt = f"""
-    User mood: "{mood_text}"
-
-    Recommend EXACTLY 5 songs that fit this mood.
-
-    Format each line exactly as:
-    Title - Artist - YouTube Link
-
-    Only output 5 lines. No extra text.
-    """
-
-    try:
-        response = model.generate_content(prompt)
-        raw = response.text or ""
-        lines = [line.strip() for line in raw.split("\\n") if "-" in line]
-
-        songs = []
-        for line in lines:
-            parts = line.split(" - ")
-            if len(parts) >= 2:
-                title = parts[0].strip()
-                artist = parts[1].strip()
-                link = parts[2].strip() if len(parts) > 2 else ""
-                songs.append((title, artist, link))
-
-        return songs[:5]
-
-    except Exception as e:
-        st.error(f"Error generating playlist: {e}")
-        return []
-
-
-def display_playlist(mood_text: str):
-    with st.spinner(f"Curating vibes for “{mood_text}” 🎶"):
-        time.sleep(1)
-        songs = generate_playlist(mood_text)
-
-    if not songs:
-        st.error("No songs generated. Try again.")
-        return
-
-    st.markdown(
-        f"<h2 class='section-title'>Recommended for: {mood_text}</h2>",
-        unsafe_allow_html=True
+    # 2. THE SYSTEM INSTRUCTION
+    system_prompt = (
+        "You are DJ VibeCheck. "
+        "Goal: Recommend 5 songs based on the user's mood.\n"
+        "RULES:\n"
+        "1. IF the user says 'I'm not sure': Ask exactly 3 short, simple questions to help identify their mood. Do not recommend songs yet.\n"
+        "2. IF the user answers your questions OR states a mood: \n"
+        "   - First, briefly state what mood you think they are feeling (e.g., 'It sounds like you're feeling reflective...').\n"
+        "   - Then, provide the playlist.\n"
+        "3. IF the input is gibberish/random: Say 'ERROR_INVALID'.\n\n"
+        "PLAYLIST FORMAT (Strict):\n"
+        "1. **Song Title** - Artist\n"
+        "   [▶️ Listen](https://www.youtube.com/results?search_query=Song+Title+Artist)\n"
+        "   *One short sentence description.*"
     )
 
-    for title, artist, link in songs:
-        st.markdown(f"""
-        <div class='card'>
-            <div class='card-left'>
-                <div class='album-img-placeholder'>💿</div>
-            </div>
-            <div class='card-right'>
-                <div class='song-title'>{title}</div>
-                <div class='song-artist'>{artist}</div>
-                <a href='{link}' class='listen-btn' target='_blank'>Listen</a>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    # 3. SEND REQUEST
+    data = {
+        "contents": conversation_history,
+        "systemInstruction": {"parts": [{"text": system_prompt}]}
+    }
+    
+    try:
+        res = requests.post(url, headers=headers, json=data)
+        if res.status_code == 200:
+            return res.json()['candidates'][0]['content']['parts'][0]['text']
+        return "⚠️ Connection Error."
+    except:
+        return "⚠️ Network Error."
 
+# --- 6. SIDEBAR ---
+with st.sidebar:
+    st.title("🎧 Control Panel")
+    if st.button("🗑️ Clear Chat History"):
+        st.session_state.messages = []
+        st.rerun()
 
-# =========================
-# UI LAYOUT
-# =========================
-st.markdown("<h1 class='title'>VibeChecker</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle'>Your AI Music Curator</p>", unsafe_allow_html=True)
+# --- 7. MAIN INTERFACE ---
+st.markdown('<p class="title-text">🎵 VibeChecker</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle-text">Your Personal AI Music Curator</p>', unsafe_allow_html=True)
 
-st.write("")
-st.write("")
+# HERO SECTION (Quick Buttons)
+if len(st.session_state.messages) == 0:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #fff; text-shadow: 1px 1px 2px black;'>How are you feeling right now?</h4>", unsafe_allow_html=True)
+    
+    # ROW 1
+    col1, col2, col3, col4 = st.columns(4)
+    clicked_mood = None
+    
+    with col1:
+        if st.button("⚡ Energetic"): clicked_mood = "I'm feeling super energetic!"
+    with col2:
+        if st.button("🌧️ Melancholy"): clicked_mood = "I'm feeling sad and melancholy."
+    with col3:
+        if st.button("🧘‍♂️ Chill"): clicked_mood = "I want to relax and chill."
+    with col4:
+        if st.button("💔 Heartbroken"): clicked_mood = "I'm heartbroken."
 
-col1, col2, col3, col4 = st.columns(4)
+    # ROW 2 - The New Feature
+    st.write("") # Spacer
+    c1, c2, c3 = st.columns([1, 2, 1]) # Centered column
+    with c2:
+        # This triggers the Question Flow
+        if st.button("🤔 Not sure how I feel?"): 
+            clicked_mood = "I'm not sure how I feel. Ask me 3 simple questions to figure it out."
 
-with col1:
-    btn_energy = st.button("⚡ Energetic", use_container_width=True)
-with col2:
-    btn_sad = st.button("🟣 Melancholy", use_container_width=True)
-with col3:
-    btn_chill = st.button("🧘 Chill", use_container_width=True)
-with col4:
-    btn_heart = st.button("💔 Heartbroken", use_container_width=True)
+    if clicked_mood:
+        st.session_state.messages.append({"role": "user", "content": clicked_mood})
+        st.rerun()
 
-st.write("")
-st.write("")
+# CHAT HISTORY
+for msg in st.session_state.messages:
+    avatar = "👤" if msg["role"] == "user" else "🎧"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
 
-user_mood = st.text_input(
-    "",
-    placeholder="Tell me how you feel… (e.g. 'lonely but hopeful')"
-)
+# INPUT & LOGIC
+if prompt := st.chat_input("Type your mood or answer here..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.rerun()
 
-preset_moods = {
-    "Energetic": "high energy upbeat hype mood",
-    "Melancholy": "sad, reflective, emotional mood",
-    "Chill": "relaxed, peaceful, calming mood",
-    "Heartbroken": "heartbreak, missing someone deeply"
-}
+# GENERATE RESPONSE
+if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+    with st.chat_message("assistant", avatar="🎧"):
+        with st.spinner("Thinking..."):
+            response = get_vibe_check()
+            
+            if "ERROR_INVALID" in response:
+                response = "🚫 I didn't catch that. Tell me a real emotion!"
+            
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
-# =========================
-# EVENT HANDLING
-# =========================
-if btn_energy:
-    display_playlist(preset_moods["Energetic"])
-
-elif btn_sad:
-    display_playlist(preset_moods["Melancholy"])
-
-elif btn_chill:
-    display_playlist(preset_moods["Chill"])
-
-elif btn_heart:
-    display_playlist(preset_moods["Heartbroken"])
-
-elif user_mood.strip():
-    if validate_mood_input(user_mood.strip()):
-        display_playlist(user_mood.strip())
-    else:
-        st.warning(
-            "Please describe your **feelings**, not questions or instructions. Example: 'sad but hopeful'"
-        )
