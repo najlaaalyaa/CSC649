@@ -1,12 +1,20 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
 import time
 import random
 
-# ============= PAGE CONFIG =============
-st.set_page_config(page_title="VibeChecker", page_icon="🎵", layout="wide")
+# =========================
+# PAGE CONFIG
+# =========================
+st.set_page_config(
+    page_title="VibeChecker",
+    page_icon="🎵",
+    layout="wide"
+)
 
-# ============= LOAD CSS =============
+# =========================
+# LOAD CSS
+# =========================
 try:
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -19,26 +27,58 @@ st.markdown("""
 <div class="floating-icon2">✨</div>
 """, unsafe_allow_html=True)
 
-# ============= GEMINI CONFIG (BACKEND) =============
-# In Streamlit Cloud → Settings → Secrets, you must add:
-# GEMINI_API_KEY = "your-real-key"
+# =========================
+# GEMINI CONFIG (HTTP API)
+# =========================
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
 except Exception:
-    st.error("❌ GEMINI_API_KEY not found in secrets. Go to app Settings → Secrets and add it.")
+    st.error("❌ GEMINI_API_KEY not found in secrets. Go to Settings → Secrets and add it.")
     st.stop()
 
-MODEL_NAME = "gemini-1.5-flash"  # requires google-generativeai>=0.7.0
+GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_URL = (
+    f"https://generativelanguage.googleapis.com/v1/"
+    f"models/{GEMINI_MODEL}:generateContent?key={API_KEY}"
+)
 
-genai.configure(api_key=API_KEY)
+def call_gemini(prompt: str) -> str:
+    """
+    Call Gemini via HTTP API and return the response text.
+    """
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+    try:
+        res = requests.post(
+            GEMINI_URL,
+            headers={"Content-Type": "application/json"},
+            json=payload,
+            timeout=30,
+        )
+        if res.status_code != 200:
+            # Show real error so we know what is happening
+            st.error(f"API error {res.status_code}: {res.text}")
+            return ""
+        data = res.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        st.error(f"Network error: {e}")
+        return ""
 
-def get_model():
-    return genai.GenerativeModel(MODEL_NAME)
-
-# ============= AI HELPERS (BACKEND LOGIC) =============
+# =========================
+# BACKEND: MOOD VALIDATION
+# =========================
 def validate_mood_input(user_text: str) -> bool:
-    """Return True if text is a mood/feeling, False if random/question."""
-    model = get_model()
+    """
+    Return True if user_text is really describing a mood/feeling.
+    """
     prompt = f"""
     The user said: "{user_text}"
 
@@ -48,20 +88,19 @@ def validate_mood_input(user_text: str) -> bool:
     - Reply ONLY with "NO" if it is a question, command, random text, technical issue, etc.
     """
 
-    try:
-        resp = model.generate_content(prompt)
-        text = (resp.text or "").strip().upper()
-        return text.startswith("YES")
-    except Exception as e:
-        st.error(f"Validation error: {e}")
+    text = call_gemini(prompt)
+    if not text:
         return False
+    return text.strip().upper().startswith("YES")
 
-
+# =========================
+# BACKEND: PLAYLIST GENERATION
+# =========================
 def generate_playlist(mood_text: str):
     """
-    Ask Gemini to generate 5 songs: (title, artist, youtube_link)
+    Ask Gemini to generate 5 songs for the given mood.
+    Returns list of (title, artist, link).
     """
-    model = get_model()
     prompt = f"""
     You are an AI music curator.
 
@@ -69,36 +108,36 @@ def generate_playlist(mood_text: str):
     "{mood_text}"
 
     Recommend EXACTLY 5 songs that fit this mood.
-    Use mix of modern & classic if suitable.
+    Use a mix of modern and classic tracks if suitable.
 
     Format each line EXACTLY like:
     Title - Artist - Suggested YouTube Link
 
-    Do NOT add numbering or extra commentary. Only 5 lines.
+    Do NOT use numbering or bullet points.
+    Output ONLY 5 lines in that format.
     """
 
-    try:
-        resp = model.generate_content(prompt)
-        raw = resp.text or ""
-        lines = [line.strip() for line in raw.split("\n") if "-" in line]
-
-        songs = []
-        for line in lines:
-            parts = line.split(" - ")
-            if len(parts) >= 2:
-                title = parts[0].strip()
-                artist = parts[1].strip()
-                link = parts[2].strip() if len(parts) > 2 else ""
-                songs.append((title, artist, link))
-
-        return songs[:5]
-    except Exception as e:
-        st.error(f"Error generating playlist: {e}")
+    text = call_gemini(prompt)
+    if not text:
         return []
 
+    lines = [line.strip() for line in text.split("\n") if "-" in line]
+    songs = []
 
+    for line in lines:
+        parts = line.split(" - ")
+        if len(parts) >= 2:
+            title = parts[0].strip()
+            artist = parts[1].strip()
+            link = parts[2].strip() if len(parts) > 2 else ""
+            songs.append((title, artist, link))
+
+    return songs[:5]
+
+# =========================
+# FRONTEND: RENDER PLAYLIST
+# =========================
 def show_playlist(mood_text: str):
-    """Frontend rendering of the playlist cards."""
     with st.spinner(f"Curating vibes for “{mood_text}” 🎶"):
         time.sleep(1)
         songs = generate_playlist(mood_text)
@@ -139,7 +178,9 @@ def show_playlist(mood_text: str):
         unsafe_allow_html=True,
     )
 
-# ============= SIDEBAR (FRONTEND) =============
+# =========================
+# SIDEBAR UI
+# =========================
 with st.sidebar:
     st.markdown("<div class='sidebar-title'>🎧 VibeChecker</div>", unsafe_allow_html=True)
     st.markdown("<p class='sidebar-sub'>Your personal AI music curator.</p>", unsafe_allow_html=True)
@@ -150,7 +191,9 @@ with st.sidebar:
     st.markdown("### Quick moods")
     st.markdown("- Energetic\n- Chill\n- Melancholy\n- Heartbroken")
 
-# ============= MAIN GUI =============
+# =========================
+# MAIN GUI
+# =========================
 st.markdown("<h1 class='title'>VibeChecker</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Your Personal AI Music Curator</p>", unsafe_allow_html=True)
 
@@ -158,11 +201,12 @@ st.write("")
 st.write("")
 
 col1, col2, col3, col4 = st.columns(4)
+
 preset_moods = {
     "Energetic": "high energy, upbeat, want to dance or work out",
-    "Melancholy": "sad, reflective, emotional, maybe rainy vibes",
+    "Melancholy": "sad, reflective, emotional",
     "Chill": "relaxed, calm, peaceful background vibes",
-    "Heartbroken": "heartbreak, missing someone, breakup mood",
+    "Heartbroken": "heartbreak, missing someone deeply",
 }
 
 with col1:
@@ -182,8 +226,9 @@ user_mood = st.text_input(
     placeholder="e.g. 'lonely but hopeful', 'stressed and tired', 'super happy today'",
 )
 
-# ============= EVENT HANDLING (BACKEND + FRONTEND) =============
-
+# =========================
+# EVENT HANDLING
+# =========================
 if btn_energy:
     show_playlist(preset_moods["Energetic"])
 elif btn_sad:
@@ -193,7 +238,6 @@ elif btn_chill:
 elif btn_heart:
     show_playlist(preset_moods["Heartbroken"])
 elif user_mood.strip():
-    # only generate if it’s actually a mood
     if validate_mood_input(user_mood):
         show_playlist(user_mood)
     else:
