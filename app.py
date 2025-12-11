@@ -28,15 +28,14 @@ st.markdown("""
 <div class="floating-icon2">✨</div>
 """, unsafe_allow_html=True)
 
-
 # =========================
-# GEMINI CONFIG (DIRECT KEY)
+# GEMINI CONFIG (DIRECT KEY – NOT SAFE FOR PUBLIC GITHUB)
 # =========================
-API_KEY = "AIzaSyCcLnWQKXNh-iqs2ppXJTPak7NWVFAbBqg"   # 🔥 Your direct key
+API_KEY = "AIzaSyCcLnWQKXNh-iqs2ppXJTPak7NWVFAbBqg"  # your key
 
 genai.configure(api_key=API_KEY)
 
-MODEL_NAME = "gemini-1.5-flash"
+MODEL_NAME = "gemini-1.0-pro"   # <- one model name, used everywhere
 
 def get_model():
     return genai.GenerativeModel(MODEL_NAME)
@@ -70,9 +69,9 @@ def generate_playlist(mood_text: str):
     prompt = f"""
     User mood: "{mood_text}"
 
-    Recommend EXACTLY 5 songs.
+    Recommend EXACTLY 5 songs that fit this mood.
 
-    Format:
+    Format each line exactly as:
     Title - Artist - YouTube Link
 
     Only output 5 lines. No extra text.
@@ -81,7 +80,7 @@ def generate_playlist(mood_text: str):
     try:
         response = model.generate_content(prompt)
         raw = response.text or ""
-        lines = [line.strip() for line in raw.split("\n") if "-" in line]
+        lines = [line.strip() for line in raw.split("\\n") if "-" in line]
 
         songs = []
         for line in lines:
