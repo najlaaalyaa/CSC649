@@ -42,12 +42,12 @@ st.markdown("""
 /* Title & subtitle */
 .title {
     text-align: center;
-    font-size: 50px;
+    font-size: 60px;
     font-weight: 900;
     background: linear-gradient(90deg, #b86cff, #6acbff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-top: 50px;
+    margin-top: 70px;
 }
 
 .subtitle {
@@ -56,11 +56,12 @@ st.markdown("""
     opacity: 0.8;
     margin-top: -10px;
     color: #b0b0b0;
+    letter-spacing: 1px;
 }
 
 /* Section title */
 .section-title {
-    font-size: 26px;
+    font-size: 28px;
     margin-top: 40px;
     font-weight: 700;
     text-align: center;
@@ -74,14 +75,14 @@ st.markdown("""
     padding: 18px;
     border-radius: 20px;
     margin-bottom: 18px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     animation: fadein 0.7s ease-in-out;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
 }
 
 .card:hover {
-    transform: scale(1.05);
+    transform: scale(1.05) translateY(-5px);
 }
 
 .card-left {
@@ -91,14 +92,14 @@ st.markdown("""
 }
 
 .album-img-placeholder {
-    width: 90px;
-    height: 90px;
+    width: 100px;
+    height: 100px;
     border-radius: 16px;
     background: #3a3a3a;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 32px;
+    font-size: 36px;
     color: #fff;
 }
 
@@ -110,14 +111,14 @@ st.markdown("""
 }
 
 .song-title {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: #fff;
 }
 
 .song-artist {
     font-size: 16px;
-    opacity: 0.8;
+    opacity: 0.7;
     margin-bottom: 8px;
     color: #b0b0b0;
 }
@@ -125,26 +126,27 @@ st.markdown("""
 .listen-btn {
     display: inline-block;
     background: #8e66ff;
-    padding: 6px 14px;
+    padding: 8px 18px;
     color: white;
     text-decoration: none;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: 12px;
+    font-size: 16px;
     transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    margin-top: 10px;
 }
 
 .listen-btn:hover {
     background: #7c55e6;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
 }
 
 /* Now playing bar */
 .now-playing {
-    margin-top: 25px;
+    margin-top: 30px;
     font-size: 18px;
     background: #1f1f1f;
-    padding: 12px;
+    padding: 15px;
     border-radius: 12px;
     text-align: center;
     color: #fff;
@@ -177,7 +179,7 @@ st.markdown("""
 .floating-icon,
 .floating-icon2 {
     position: fixed;
-    font-size: 26px;
+    font-size: 30px;
     opacity: 0.6;
     animation: float 3s infinite ease-in-out;
     z-index: 999;
@@ -189,7 +191,7 @@ st.markdown("""
 
 @keyframes float {
     0% { transform: translateY(0px); }
-    50% { transform: translateY(8px); }
+    50% { transform: translateY(10px); }
     100% { transform: translateY(0px); }
 }
 
@@ -199,15 +201,15 @@ st.markdown("""
     padding: 20px;
     border-radius: 20px;
     margin-top: 30px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
 .chatbox input[type="text"] {
     background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
-    padding: 10px;
+    padding: 12px;
     width: 80%;
     font-size: 16px;
     color: white;
@@ -215,9 +217,9 @@ st.markdown("""
 
 .chatbox button {
     background-color: #8e66ff;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 16px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
     color: white;
     transition: background 0.3s;
@@ -226,7 +228,6 @@ st.markdown("""
 .chatbox button:hover {
     background-color: #7c55e6;
 }
-
     </style>
 """, unsafe_allow_html=True)
 
