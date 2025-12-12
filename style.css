@@ -1,4 +1,4 @@
-/* General Body */
+/* General body styling */
 body {
     font-family: 'Inter', sans-serif;
     background-color: #121212;
@@ -7,73 +7,80 @@ body {
     padding: 0;
 }
 
-/* Title & Subtitle */
-.title {
+/* Title and subtitle */
+.title-text {
     text-align: center;
     font-size: 60px;
     font-weight: 900;
-    background: linear-gradient(90deg, #9B4DFF, #6ACBFF);
+    background: linear-gradient(45deg, #ff4c8f, #6acbff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-top: 80px;
+    margin-top: 50px;
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
 }
 
-.subtitle {
+.subtitle-text {
     text-align: center;
     font-size: 22px;
-    opacity: 0.8;
-    color: #B0B0B0;
+    color: #ddd;
+    opacity: 0.9;
     margin-top: -10px;
+    letter-spacing: 1px;
 }
 
-/* Search Bar */
-.search-bar {
-    text-align: center;
-    width: 60%;
-    margin: 40px auto;
-}
-
-.search-bar input {
-    width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    border-radius: 10px;
-    border: 1px solid #6ACBFF;
-    background-color: #1F1F1F;
+/* Input styles */
+.stTextInput input {
+    background-color: #1f1f1f;
     color: #e0e0e0;
-    transition: border 0.3s ease;
-}
-
-.search-bar input:focus {
-    border: 1px solid #8E66FF;
+    border-radius: 10px;
+    padding: 12px;
+    width: 70%;
+    font-size: 18px;
+    border: 1px solid #6acbff;
     outline: none;
+    transition: 0.3s;
 }
 
-/* Playlist Section */
-.section-title {
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    color: #8E66FF;
-    margin-top: 40px;
+.stTextInput input:focus {
+    border-color: #ff4c8f;
+    box-shadow: 0 0 10px rgba(255, 76, 143, 0.5);
 }
 
-/* Song Card */
+/* Button styling */
+.stButton button {
+    background-color: #8e66ff;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 12px 24px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 20px 0;
+}
+
+.stButton button:hover {
+    background-color: #7c55e6;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    transform: scale(1.05);
+}
+
+/* Card styling */
 .card {
-    display: flex;
     background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
     padding: 20px;
-    border-radius: 18px;
+    display: flex;
     margin-bottom: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: fadein 0.7s ease-in-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    transition: 0.3s;
 }
 
 .card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
 .card-left {
@@ -83,15 +90,15 @@ body {
 }
 
 .album-img-placeholder {
-    width: 100px;
-    height: 100px;
-    border-radius: 16px;
+    width: 80px;
+    height: 80px;
     background: #3a3a3a;
+    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 36px;
-    color: #fff;
+    font-size: 30px;
+    color: white;
 }
 
 .card-right {
@@ -104,104 +111,41 @@ body {
 .song-title {
     font-size: 22px;
     font-weight: 700;
-    color: #FFF;
+    color: #fff;
 }
 
 .song-artist {
     font-size: 16px;
     opacity: 0.7;
     margin-bottom: 10px;
-    color: #B0B0B0;
+    color: #b0b0b0;
 }
 
-/* Listen Button */
+/* Button within cards */
 .listen-btn {
     display: inline-block;
-    background: #8E66FF;
+    background: #8e66ff;
     padding: 8px 20px;
     color: white;
     text-decoration: none;
     border-radius: 12px;
     font-size: 16px;
-    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
-    margin-top: 10px;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .listen-btn:hover {
-    background: #7C55E6;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    background: #7c55e6;
     transform: translateY(-2px);
 }
 
-/* Sidebar */
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 250px;
-    background-color: #1F1F1F;
-    padding-top: 30px;
-    padding-left: 20px;
-}
-
-.sidebar .sidebar-title {
-    font-size: 24px;
-    color: #8E66FF;
-    font-weight: 800;
-}
-
-.sidebar .sidebar-sub {
-    color: #B0B0B0;
-    opacity: 0.7;
-}
-
-.sidebar .sidebar-item {
-    margin: 15px 0;
-    font-size: 18px;
-    color: #B0B0B0;
-    cursor: pointer;
-}
-
-.sidebar .sidebar-item:hover {
-    color: #8E66FF;
-}
-
-.sidebar .surprise-btn {
-    display: inline-block;
-    background: #FF6F61;
-    padding: 12px 24px;
-    color: white;
-    text-decoration: none;
-    border-radius: 12px;
-    font-size: 16px;
-    margin-top: 20px;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.sidebar .surprise-btn:hover {
-    background: #FF5733;
-    transform: translateY(-3px);
-}
-
-/* Floating Icons */
-.floating-icon,
-.floating-icon2 {
-    position: fixed;
-    font-size: 30px;
-    opacity: 0.6;
-    animation: float 3s infinite ease-in-out;
-    z-index: 999;
-    pointer-events: none;
-}
-
-.floating-icon { top: 20px; right: 20px; }
-.floating-icon2 { bottom: 20px; left: 20px; }
-
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(10px); }
-    100% { transform: translateY(0px); }
+/* Section for title like "The Full-Throttle Vibe Playlist" */
+.section-title {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    color: #ff4c8f;
+    margin-top: 40px;
+    letter-spacing: 1px;
 }
 
 /* Chatbox */
@@ -237,3 +181,11 @@ body {
 .chatbox button:hover {
     background-color: #7c55e6;
 }
+
+/* Animation */
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+</style>
