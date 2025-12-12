@@ -1,416 +1,194 @@
 import streamlit as st
 import requests
-import time
-from datetime import datetime
-from io import StringIO
-import csv
+import base64
 
-# =========================
-# PAGE CONFIG
-# =========================
-st.set_page_config(
-    page_title="VibeChecker",
-    page_icon="🎵",
-    layout="wide"
-)
+# --- 1. SETUP PAGE CONFIG ---
+st.set_page_config(page_title="VibeChecker", page_icon="🎵", layout="centered")
 
-# =========================
-# LOAD CSS
-# =========================
+# --- 2. IMAGE LOADER ---
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# --- 3. CUSTOM CSS ---
 try:
-    with open("style.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-except FileNotFoundError:
-    st.warning("⚠️ style.css not found. Put it in the same folder as app.py for full styling.")
+    img_base64 = get_base64_of_bin_file("background.jpeg")
+    background_style = f"""
+        <style>
+        .stApp {{
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("data:image/jpeg;base64,{img_base64}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
+        </style>
+    """
+except:
+    background_style = "<style>.stApp { background-color: #0E1117; }</style>"
 
-# Floating icons
+st.markdown(background_style, unsafe_allow_html=True)
+
 st.markdown("""
-<div class="floating-icon">🎵</div>
-<div class="floating-icon2">✨</div>
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    .title-text {
+        font-size: 80px;
+        font-weight: 900;
+        background: -webkit-linear-gradient(45deg, #00d2ff, #3a7bd5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        line-height: 1.1;
+        padding-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .subtitle-text {
+        text-align: center;
+        font-size: 20px;
+        color: #ddd;
+        margin-bottom: 40px;
+        text-shadow: 1px 1px 2px black;
+    }
+    
+    .stButton button {
+        width: 100%;
+        border-radius: 12px;
+        height: 60px;
+        font-size: 16px;
+        font-weight: 600;
+        border: 1px solid #333;
+        background-color: rgba(0, 0, 0, 0.6); 
+        color: white;
+        transition: all 0.3s;
+        backdrop-filter: blur(5px);
+    }
+    
+    .stButton button:hover {
+        border-color: #00d2ff;
+        color: #00d2ff;
+        transform: scale(1.02);
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# GEMINI HTTP CONFIG
-# =========================
+# --- 4. API SETUP ---
 try:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-except Exception:
-    st.error("❌ GEMINI_API_KEY not found in secrets. Go to Settings → Secrets and add it.")
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except:
+    st.error("⚠️ API Key missing! Check your Secrets.")
     st.stop()
 
-# Try models from newer → older
-CANDIDATE_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-    "gemini-1.0-pro",
-    "gemini-pro",
-]
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-if "gemini_model" not in st.session_state:
-    st.session_state.gemini_model = None  # will be discovered
-if "history" not in st.session_state:
-    st.session_state.history = []        # will store mood + songs
+# --- 5. THE BRAIN (Now with Memory!) ---
+def get_vibe_check():
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    
+    # 1. BUILD HISTORY
+    conversation_history = []
+    for msg in st.session_state.messages:
+        role = "user" if msg["role"] == "user" else "model"
+        conversation_history.append({"role": role, "parts": [{"text": msg["content"]}]})
 
-
-def _raw_gemini_call(model: str, prompt: str):
-    """Low-level HTTP call for a specific model."""
-    url = (
-        f"https://generativelanguage.googleapis.com/v1/"
-        f"models/{model}:generateContent?key={API_KEY}"
+    # 2. THE SYSTEM INSTRUCTION
+    system_prompt = (
+        "You are DJ VibeCheck. "
+        "Goal: Recommend 5 songs based on the user's mood.\n"
+        "RULES:\n"
+        "1. IF the user says 'I'm not sure': Ask exactly 3 short, simple questions to help identify their mood. Do not recommend songs yet.\n"
+        "2. IF the user answers your questions OR states a mood: \n"
+        "   - First, briefly state what mood you think they are feeling (e.g., 'It sounds like you're feeling reflective...').\n"
+        "   - Then, provide the playlist.\n"
+        "3. IF the input is gibberish/random: Say 'ERROR_INVALID'.\n\n"
+        "PLAYLIST FORMAT (Strict):\n"
+        "1. **Song Title** - Artist\n"
+        "   [▶️ Listen](https://www.youtube.com/results?search_query=Song+Title+Artist)\n"
+        "   *One short sentence description.*"
     )
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
+
+    # 3. SEND REQUEST
+    data = {
+        "contents": conversation_history,
+        "systemInstruction": {"parts": [{"text": system_prompt}]}
     }
+    
     try:
-        res = requests.post(
-            url,
-            headers={"Content-Type": "application/json"},
-            json=payload,
-            timeout=30,
-        )
+        res = requests.post(url, headers=headers, json=data)
         if res.status_code == 200:
-            data = res.json()
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            return 200, text
-        else:
-            return res.status_code, res.text
-    except Exception as e:
-        return 0, str(e)
+            return res.json()['candidates'][0]['content']['parts'][0]['text']
+        return "⚠️ Connection Error."
+    except:
+        return "⚠️ Network Error."
 
-
-def call_gemini(prompt: str) -> str:
-    """
-    High-level call:
-    - If we already know a working model, use it.
-    - If that model gives 503/overloaded, try the others.
-    - Show clean messages (no raw JSON).
-    """
-    # If we already discovered a working model, try it first
-    if st.session_state.gemini_model:
-        code, text = _raw_gemini_call(st.session_state.gemini_model, prompt)
-        if code == 200:
-            return text
-        # If overloaded or internal error, forget this model and try others
-        if code in (500, 503):
-            st.session_state.gemini_model = None
-        else:
-            st.error("⚠️ Gemini returned an error. Please check your API key / quota.")
-            return ""
-
-    # Auto-detect a working model
-    transient_error = False
-    auth_error = False
-
-    for model in CANDIDATE_MODELS:
-        code, text = _raw_gemini_call(model, prompt)
-        if code == 200:
-            st.session_state.gemini_model = model
-            return text
-        elif code in (500, 503):  # overloaded / internal
-            transient_error = True
-            continue
-        elif code in (401, 403):  # auth / permission
-            auth_error = True
-            break
-        else:
-            # Other 4xx/5xx, just continue trying others
-            continue
-
-    if auth_error:
-        st.error("❌ Gemini API says this key has no access to these models (401/403).")
-    elif transient_error:
-        st.warning("✨ Gemini is a bit busy right now. Please try again in a moment.")
-    else:
-        st.error("⚠️ No compatible Gemini model was found for this API key.")
-
-    return ""
-
-
-# =========================
-# LANGUAGE TOGGLE
-# =========================
-lang = st.sidebar.radio(
-    "Language / Bahasa",
-    ["English", "Bahasa Melayu"],
-    index=0
-)
-
-is_bm = (lang == "Bahasa Melayu")
-
-
-# =========================
-# BACKEND: MOOD VALIDATION
-# =========================
-def validate_mood_input(user_text: str) -> bool:
-    """
-    Return True if user_text is really describing a mood/feeling.
-    Works for English + Malay.
-    """
-    prompt = f"""
-    The user said (may be English or Malay): "{user_text}"
-
-    Your job:
-    - Decide if this text describes how the user FEELS (emotion/mood/state of mind).
-    - Reply ONLY with "YES" if it's clearly a mood/feeling.
-    - Reply ONLY with "NO" if it is a question, command, random text, technical issue, etc.
-
-    Examples that should be YES:
-    - "i feel sad"
-    - "saya sedih"
-    - "penat tapi gembira"
-    - "i'm bored and lonely"
-    - "seronok sangat hari ni"
-
-    Examples that should be NO:
-    - "what is 5+5?"
-    - "macam mana nak masak nasi?"
-    - "laptop saya rosak"
-    - "open the door"
-    """
-
-    text = call_gemini(prompt)
-    if not text:
-        return False
-    return text.strip().upper().startswith("YES")
-
-
-# =========================
-# BACKEND: PLAYLIST GENERATION
-# =========================
-def generate_playlist(mood_text: str):
-    """
-    Ask Gemini to generate 5 songs for the given mood.
-    Returns list of (title, artist, link).
-    """
-    lang_hint = "Malay" if is_bm else "English"
-
-    prompt = f"""
-    You are an AI music curator.
-
-    The user described their mood ({lang_hint} may be mixed with English):
-    "{mood_text}"
-
-    Your task:
-    - Understand the emotion behind this text.
-    - Recommend EXACTLY 5 songs that match the mood.
-    - You can suggest songs from any language, but prefer popular tracks.
-
-    Format each line EXACTLY like:
-    Title - Artist - Suggested YouTube Link
-
-    Do NOT use numbering or bullet points.
-    Output ONLY 5 lines in that format.
-    """
-
-    text = call_gemini(prompt)
-    if not text:
-        return []
-
-    lines = [line.strip() for line in text.split("\n") if "-" in line]
-    songs = []
-
-    for line in lines:
-        parts = line.split(" - ")
-        if len(parts) >= 2:
-            title = parts[0].strip()
-            artist = parts[1].strip()
-            link = parts[2].strip() if len(parts) > 2 else ""
-            songs.append((title, artist, link))
-
-    return songs[:5]
-
-
-# =========================
-# FRONTEND: RENDER + HISTORY
-# =========================
-def show_playlist(mood_text: str):
-    with st.spinner("Curating vibes… 🎶"):
-        time.sleep(1)
-        songs = generate_playlist(mood_text)
-
-    if not songs:
-        st.error("No songs generated. Try again.")
-        return
-
-    heading = "Recommended for" if not is_bm else "Cadangan untuk"
-    st.markdown(
-        f"<h2 class='section-title'>{heading}: {mood_text}</h2>",
-        unsafe_allow_html=True,
-    )
-
-    for title, artist, link in songs:
-        btn_html = (
-            f"<a href='{link}' target='_blank' class='listen-btn'>Listen</a>"
-            if link
-            else ""
-        )
-        st.markdown(
-            f"""
-            <div class='card'>
-                <div class='card-left'>
-                    <div class='album-img-placeholder'>💿</div>
-                </div>
-                <div class='card-right'>
-                    <div class='song-title'>{title}</div>
-                    <div class='song-artist'>{artist}</div>
-                    {btn_html}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    active_model = st.session_state.gemini_model or "Auto-detecting…"
-    st.markdown(
-        f"""
-        <div class='now-playing'>
-            <span class='np-label'>Now Playing:</span> {songs[0][0]} — {songs[0][1]}
-            <br><span style="font-size: 12px; opacity: 0.7;">Model: {active_model}</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # ===== Save to history for CSV =====
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-    for idx, (title, artist, link) in enumerate(songs, start=1):
-        st.session_state.history.append(
-            {
-                "timestamp_utc": timestamp,
-                "language": "BM" if is_bm else "EN",
-                "mood_text": mood_text,
-                "song_rank": idx,
-                "song_title": title,
-                "song_artist": artist,
-                "song_link": link,
-                "model": active_model,
-            }
-        )
-
-
-def build_history_csv() -> str:
-    """Convert history list → CSV string."""
-    if not st.session_state.history:
-        return ""
-    output = StringIO()
-    writer = csv.DictWriter(
-        output,
-        fieldnames=[
-            "timestamp_utc",
-            "language",
-            "mood_text",
-            "song_rank",
-            "song_title",
-            "song_artist",
-            "song_link",
-            "model",
-        ],
-    )
-    writer.writeheader()
-    for row in st.session_state.history:
-        writer.writerow(row)
-    return output.getvalue()
-
-
-# =========================
-# SIDEBAR UI
-# =========================
+# --- 6. SIDEBAR ---
 with st.sidebar:
-    st.markdown("<div class='sidebar-title'>🎧 VibeChecker</div>", unsafe_allow_html=True)
-    st.markdown("<p class='sidebar-sub'>Your personal AI music curator.</p>", unsafe_allow_html=True)
-    st.write("---")
-    st.markdown("### How it works" if not is_bm else "### Cara guna")
-    st.markdown(
-        "1. Tell me your mood\n2. I understand your vibe\n3. I suggest songs 🎵"
-        if not is_bm
-        else "1. Beritahu mood anda\n2. Saya faham perasaan anda\n3. Saya cadangkan lagu 🎵"
-    )
-    st.write("---")
-    st.markdown("### Quick moods" if not is_bm else "### Mood pantas")
-    st.markdown("- Energetic\n- Chill\n- Melancholy\n- Heartbroken")
-    st.write("---")
-    active = st.session_state.gemini_model or "Auto-detecting…"
-    st.caption(f"Using Gemini model: {active}")
+    st.title("🎧 Control Panel")
+    if st.button("🗑️ Clear Chat History"):
+        st.session_state.messages = []
+        st.rerun()
 
-    # Download history CSV
-    if st.session_state.history:
-        csv_data = build_history_csv()
-        st.download_button(
-            label="⬇️ Download mood & songs history (CSV)",
-            data=csv_data,
-            file_name="vibechecker_history.csv",
-            mime="text/csv",
-        )
+# --- 7. MAIN INTERFACE ---
+st.markdown('<p class="title-text">🎵 VibeChecker</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle-text">Your Personal AI Music Curator</p>', unsafe_allow_html=True)
 
-# =========================
-# MAIN GUI
-# =========================
-title_text = "VibeChecker"
-subtitle_text = (
-    "Your Personal AI Music Curator"
-    if not is_bm
-    else "Kurator Muzik AI Peribadi Anda"
-)
+# HERO SECTION (Quick Buttons)
+if len(st.session_state.messages) == 0:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #fff; text-shadow: 1px 1px 2px black;'>How are you feeling right now?</h4>", unsafe_allow_html=True)
+    
+    # ROW 1
+    col1, col2, col3, col4 = st.columns(4)
+    clicked_mood = None
+    
+    with col1:
+        if st.button("⚡ Energetic"): clicked_mood = "I'm feeling super energetic!"
+    with col2:
+        if st.button("🌧️ Melancholy"): clicked_mood = "I'm feeling sad and melancholy."
+    with col3:
+        if st.button("🧘‍♂️ Chill"): clicked_mood = "I want to relax and chill."
+    with col4:
+        if st.button("💔 Heartbroken"): clicked_mood = "I'm heartbroken."
 
-st.markdown(f"<h1 class='title'>{title_text}</h1>", unsafe_allow_html=True)
-st.markdown(f"<p class='subtitle'>{subtitle_text}</p>", unsafe_allow_html=True)
+    # ROW 2 - The New Feature
+    st.write("") # Spacer
+    c1, c2, c3 = st.columns([1, 2, 1]) # Centered column
+    with c2:
+        # This triggers the Question Flow
+        if st.button("🤔 Not sure how I feel?"): 
+            clicked_mood = "I'm not sure how I feel. Ask me 3 simple questions to figure it out."
 
-st.write("")
-st.write("")
+    if clicked_mood:
+        st.session_state.messages.append({"role": "user", "content": clicked_mood})
+        st.rerun()
 
-col1, col2, col3, col4 = st.columns(4)
+# CHAT HISTORY
+for msg in st.session_state.messages:
+    avatar = "👤" if msg["role"] == "user" else "🎧"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
 
-preset_moods = {
-    "Energetic": "high energy, upbeat, want to dance or work out",
-    "Melancholy": "sad, reflective, emotional",
-    "Chill": "relaxed, calm, peaceful background vibes",
-    "Heartbroken": "heartbreak, missing someone deeply",
-}
+# INPUT & LOGIC
+if prompt := st.chat_input("Type your mood or answer here..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.rerun()
 
-with col1:
-    btn_energy = st.button("⚡ Energetic", use_container_width=True)
-with col2:
-    btn_sad = st.button("🟣 Melancholy", use_container_width=True)
-with col3:
-    btn_chill = st.button("🧘 Chill", use_container_width=True)
-with col4:
-    btn_heart = st.button("💔 Heartbroken", use_container_width=True)
+# GENERATE RESPONSE
+if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+    with st.chat_message("assistant", avatar="🎧"):
+        with st.spinner("Thinking..."):
+            response = get_vibe_check()
+            
+            if "ERROR_INVALID" in response:
+                response = "🚫 I didn't catch that. Tell me a real emotion!"
+            
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
-st.write("")
-st.write("")
-
-placeholder = (
-    "e.g. 'lonely but hopeful', 'stressed and tired', 'super happy today'"
-    if not is_bm
-    else "cth. 'sedih tapi lega', 'letih dan stres', 'seronok sangat hari ni'"
-)
-
-label = "Tell me how you feel..." if not is_bm else "Beritahu saya bagaimana perasaan anda..."
-
-user_mood = st.text_input(label, placeholder=placeholder)
-
-# =========================
-# EVENT HANDLING
-# =========================
-if btn_energy:
-    show_playlist(preset_moods["Energetic"])
-elif btn_sad:
-    show_playlist(preset_moods["Melancholy"])
-elif btn_chill:
-    show_playlist(preset_moods["Chill"])
-elif btn_heart:
-    show_playlist(preset_moods["Heartbroken"])
-elif user_mood.strip():
-    if validate_mood_input(user_mood):
-        show_playlist(user_mood)
-    else:
-        msg = (
-            "✨ I can recommend music, but first tell me how you feel emotionally "
-            "(e.g. 'sad but hopeful', 'stressed and tired', 'super excited')."
-            if not is_bm
-            else "✨ Saya boleh cadangkan lagu, tapi beritahu dulu perasaan anda "
-                 "(cth. 'sedih tapi lega', 'stres dan penat', 'teruja sangat')."
-        )
-        st.warning(msg)
