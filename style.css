@@ -49,6 +49,7 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
+    animation: fadein 0.7s ease-in-out;
 }
 
 .card:hover {
@@ -171,5 +172,54 @@ body {
 .stTextInput input:focus {
     border-color: #ff4c8f;
     box-shadow: 0 0 10px rgba(255, 76, 143, 0.5);
+}
+
+/* Sidebar section */
+.sidebar {
+    background-color: #1f1f1f;
+    color: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    margin-right: 25px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar:hover {
+    transform: translateX(-5px);
+}
+
+.sidebar .sidebar-item {
+    font-size: 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+}
+
+.sidebar .sidebar-item:hover {
+    color: #8e66ff;
+}
+
+/* Surprise button */
+.surprise-btn {
+    display: inline-block;
+    background: #ff6f61;
+    padding: 12px 24px;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.surprise-btn:hover {
+    background: #ff5733;
+    transform: translateY(-3px);
+}
+
+/* Floating Animation */
+@keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(12px); }
+    100% { transform: translateY(0px); }
 }
 </style>
