@@ -17,109 +17,238 @@ import streamlit as st
 # Inject custom CSS into the app
 st.markdown("""
     <style>
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #121212;
-        color: #e0e0e0;
-        margin: 0;
-        padding: 0;
-    }
+    /* General Body */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #121212;
+    color: #E0E0E0;
+    margin: 0;
+    padding: 0;
+}
 
-    .title {
-        text-align: center;
-        font-size: 60px;
-        font-weight: 900;
-        background: linear-gradient(90deg, #b86cff, #6acbff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-top: 70px;
-    }
+/* Title & Subtitle */
+.title {
+    text-align: center;
+    font-size: 60px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #9B4DFF, #6ACBFF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: 80px;
+}
 
-    .subtitle {
-        text-align: center;
-        font-size: 22px;
-        opacity: 0.8;
-        margin-top: -10px;
-        color: #b0b0b0;
-        letter-spacing: 1px;
-    }
+.subtitle {
+    text-align: center;
+    font-size: 22px;
+    opacity: 0.8;
+    color: #B0B0B0;
+    margin-top: -10px;
+}
 
+/* Section Titles */
+.section-title {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    color: #8E66FF;
+    margin-top: 40px;
+}
+
+/* Card Style */
+.card {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 18px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+    animation: fadein 0.7s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.album-img-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 16px;
+    background: #3A3A3A;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    color: #FFF;
+}
+
+.card-right {
+    margin-left: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.song-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #FFF;
+}
+
+.song-artist {
+    font-size: 16px;
+    opacity: 0.8;
+    margin-bottom: 10px;
+    color: #B0B0B0;
+}
+
+.listen-btn {
+    display: inline-block;
+    background: #8E66FF;
+    padding: 8px 20px;
+    color: #FFF;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s ease;
+}
+
+.listen-btn:hover {
+    background: #7C55E6;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+}
+
+/* Now Playing Bar */
+.now-playing {
+    margin-top: 25px;
+    font-size: 18px;
+    background: #1F1F1F;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    color: #FFF;
+}
+
+.np-label {
+    font-weight: 700;
+    color: #B17CFF;
+}
+
+/* Animation */
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sidebar */
+.sidebar-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #8E66FF;
+}
+
+.sidebar-sub {
+    opacity: 0.7;
+    color: #B0B0B0;
+}
+
+/* Floating Icons */
+.floating-icon, .floating-icon2 {
+    position: fixed;
+    font-size: 28px;
+    opacity: 0.6;
+    animation: float 3s infinite ease-in-out;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.floating-icon { top: 20px; right: 20px; }
+.floating-icon2 { bottom: 20px; left: 20px; }
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Chatbox */
+.chatbox {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 18px;
+    margin-top: 30px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+}
+
+.chatbox input[type="text"] {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    border: none;
+    padding: 12px;
+    width: 80%;
+    font-size: 16px;
+    color: white;
+}
+
+.chatbox button {
+    background-color: #8E66FF;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: none;
+    color: white;
+    transition: background 0.3s;
+}
+
+.chatbox button:hover {
+    background-color: #7C55E6;
+}
+
+/* Modal or Lightbox for Images */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal img {
+    max-width: 90%;
+    max-height: 80%;
+    border-radius: 10px;
+}
+
+/* Fullscreen Mode */
+@media (max-width: 768px) {
     .card {
-        display: flex;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 18px;
-        border-radius: 20px;
-        margin-bottom: 18px;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        animation: fadein 0.7s ease-in-out;
-        transition: transform 0.3s ease;
-    }
-
-    .card:hover {
-        transform: scale(1.05) translateY(-5px);
-    }
-
-    .card-left {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .album-img-placeholder {
-        width: 100px;
-        height: 100px;
-        border-radius: 16px;
-        background: #3a3a3a;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 36px;
-        color: #fff;
-    }
-
-    .card-right {
-        margin-left: 15px;
-        display: flex;
         flex-direction: column;
-        justify-content: center;
+        align-items: center;
     }
 
-    .song-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #fff;
-    }
-
-    .song-artist {
-        font-size: 16px;
-        opacity: 0.7;
-        margin-bottom: 8px;
-        color: #b0b0b0;
+    .card-left, .card-right {
+        margin: 0;
+        text-align: center;
     }
 
     .listen-btn {
-        display: inline-block;
-        background: #8e66ff;
-        padding: 8px 18px;
-        color: white;
-        text-decoration: none;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
-        margin-top: 10px;
+        width: 100%;
     }
-
-    .listen-btn:hover {
-        background: #7c55e6;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        transform: translateY(-2px);
-    }
-
-    @keyframes fadein {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+}
 
     </style>
 """, unsafe_allow_html=True)
