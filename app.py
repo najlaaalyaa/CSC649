@@ -159,11 +159,6 @@ with st.sidebar:
         if st.button(label, key=value, use_container_width=True):
             clicked = value
 
-    st.markdown("<br><h4 style='color:#b86cff;'>✨ Randomizer</h4>", unsafe_allow_html=True)
-
-    if st.button("🎲 Surprise Me", use_container_width=True):
-        clicked = random.choice([v for _, v in mood_list])
-
     st.markdown(
         "<div class='sidebar-footer'>VibeChecker 2025 • Powered by Gemini AI</div>",
         unsafe_allow_html=True,
