@@ -7,102 +7,65 @@ body {
     padding: 0;
 }
 
-/* Title and subtitle */
-.title-text {
+/* Title styling */
+.title {
     text-align: center;
     font-size: 60px;
     font-weight: 900;
-    background: linear-gradient(45deg, #ff4c8f, #6acbff);
+    background: linear-gradient(90deg, #b86cff, #6acbff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-top: 50px;
+    margin-top: 60px;
     text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
 }
 
-.subtitle-text {
+/* Subtitle styling */
+.subtitle {
     text-align: center;
     font-size: 22px;
     color: #ddd;
-    opacity: 0.9;
+    opacity: 0.8;
     margin-top: -10px;
     letter-spacing: 1px;
 }
 
-/* Input styles */
-.stTextInput input {
-    background-color: #1f1f1f;
-    color: #e0e0e0;
-    border-radius: 10px;
-    padding: 12px;
-    width: 70%;
-    font-size: 18px;
-    border: 1px solid #6acbff;
-    outline: none;
-    transition: 0.3s;
+/* Section title styling */
+.section-title {
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    color: #8e66ff;
+    margin-top: 40px;
+    letter-spacing: 1px;
 }
 
-.stTextInput input:focus {
-    border-color: #ff4c8f;
-    box-shadow: 0 0 10px rgba(255, 76, 143, 0.5);
-}
-
-/* Button styling */
-.stButton button {
-    background-color: #8e66ff;
-    color: white;
-    font-size: 18px;
-    font-weight: 600;
-    border-radius: 12px;
-    padding: 12px 24px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 20px 0;
-}
-
-.stButton button:hover {
-    background-color: #7c55e6;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-    transform: scale(1.05);
-}
-
-/* Card styling */
+/* Card Styling */
 .card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 20px;
     display: flex;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(12px);
-    transition: 0.3s;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 18px;
+    margin-bottom: 25px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
-.card-left {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Album image */
+.album-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    object-fit: cover;
 }
 
-.album-img-placeholder {
-    width: 80px;
-    height: 80px;
-    background: #3a3a3a;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 30px;
-    color: white;
-}
-
+/* Card content */
 .card-right {
-    margin-left: 15px;
+    margin-left: 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -121,16 +84,16 @@ body {
     color: #b0b0b0;
 }
 
-/* Button within cards */
+/* Listen Button */
 .listen-btn {
     display: inline-block;
     background: #8e66ff;
-    padding: 8px 20px;
+    padding: 8px 18px;
     color: white;
     text-decoration: none;
     border-radius: 12px;
     font-size: 16px;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .listen-btn:hover {
@@ -138,54 +101,75 @@ body {
     transform: translateY(-2px);
 }
 
-/* Section for title like "The Full-Throttle Vibe Playlist" */
-.section-title {
-    font-size: 28px;
-    font-weight: 700;
+/* Now Playing Bar */
+.now-playing {
+    margin-top: 25px;
+    font-size: 18px;
+    background: #1f1f1f;
+    padding: 15px;
+    border-radius: 12px;
     text-align: center;
-    color: #ff4c8f;
-    margin-top: 40px;
-    letter-spacing: 1px;
+    color: #fff;
 }
 
-/* Chatbox */
-.chatbox {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 20px;
-    margin-top: 30px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+.np-label {
+    font-weight: 700;
+    color: #b17cff;
 }
 
-.chatbox input[type="text"] {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    border: none;
-    padding: 12px;
-    width: 80%;
-    font-size: 16px;
-    color: white;
-}
-
-.chatbox button {
-    background-color: #8e66ff;
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 12px;
-    border: none;
-    color: white;
-    transition: background 0.3s;
-}
-
-.chatbox button:hover {
-    background-color: #7c55e6;
-}
-
-/* Animation */
+/* Animations */
 @keyframes fadein {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Sidebar */
+.sidebar-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #8e66ff;
+}
+
+.sidebar-sub {
+    opacity: 0.7;
+    color: #b0b0b0;
+}
+
+/* Floating Icons */
+.floating-icon,
+.floating-icon2 {
+    position: fixed;
+    font-size: 28px;
+    opacity: 0.6;
+    animation: float 3s infinite ease-in-out;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.floating-icon { top: 20px; right: 20px; }
+.floating-icon2 { bottom: 20px; left: 20px; }
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Input box for mood */
+.stTextInput input {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    padding: 12px;
+    font-size: 18px;
+    width: 70%;
+    border-radius: 10px;
+    border: 1px solid #6acbff;
+    outline: none;
+    transition: 0.3s;
+}
+
+.stTextInput input:focus {
+    border-color: #ff4c8f;
+    box-shadow: 0 0 10px rgba(255, 76, 143, 0.5);
+}
 </style>
