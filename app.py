@@ -266,28 +266,6 @@ with st.sidebar:
     st.markdown('<div class="sidebar-item">Energetic</div>', unsafe_allow_html=True)
     st.markdown('<div class="surprise-btn">Surprise Me</div>', unsafe_allow_html=True)
 
-# Streamlit app content
-st.title("🎵 VibeChecker")
-st.subheader("Your Personal AI Music Curator")
-
-# Example content to test the layout
-st.write("This is a test of the new style!")
-
-# Create a sample song card
-col1, col2 = st.columns([1, 3])
-
-with col1:
-    st.markdown("<div class='album-img-placeholder'>💿</div>", unsafe_allow_html=True)
-
-with col2:
-    st.markdown("""
-        <div class="card-right">
-            <div class="song-title">Song Title</div>
-            <div class="song-artist">Artist Name</div>
-            <a class="listen-btn" href="https://www.youtube.com">▶️ Listen</a>
-        </div>
-    """, unsafe_allow_html=True)
-
 # --- 4. API SETUP ---
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
