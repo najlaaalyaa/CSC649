@@ -269,3 +269,16 @@ if st.session_state.playlist:
             <a href="{song.get('link', 'https://www.youtube.com')}" target="_blank" class="listen-btn">▶ Listen</a>
         </div>
         """, unsafe_allow_html=True)
+        
+# Debugging API response
+try:
+    res = requests.post(url, headers=headers, json=data)
+    if res.status_code == 200:
+        print("API response:", res.json())  # Debug print
+        text = res.json()['candidates'][0]['content']['parts'][0]['text']
+        clean_json = text.replace("```json", "").replace("```", "").strip()
+        return json.loads(clean_json)
+    else:
+        print(f"Error: {res.status_code} - {res.text}")  # Debug print for error response
+except Exception as e:
+    print(f"Exception occurred: {e}")  # Exception handling
