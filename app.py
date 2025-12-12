@@ -12,224 +12,139 @@ def get_base64_of_bin_file(bin_file):
     return base64.b64encode(data).decode()
 
 # --- 3. CUSTOM CSS ---
-try:
-    img_base64 = get_base64_of_bin_file("background.jpeg")
-    background_style = f"""
-        <style>
-        .stApp {{
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("data:image/jpeg;base64,{img_base64}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }}
-        </style>
-    """
-except:
-    background_style = "<style>.stApp { background-color: #0E1117; }</style>"
+import streamlit as st
 
-st.markdown(background_style, unsafe_allow_html=True)
-
+# Inject custom CSS into the app
 st.markdown("""
     <style>
     body {
-    font-family: 'Inter', sans-serif;
-    background-color: #121212;
-    color: #e0e0e0;
-    margin: 0;
-    padding: 0;
-}
+        font-family: 'Inter', sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 0;
+    }
 
-/* Title & subtitle */
-.title {
-    text-align: center;
-    font-size: 60px;
-    font-weight: 900;
-    background: linear-gradient(90deg, #b86cff, #6acbff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-top: 70px;
-}
+    .title {
+        text-align: center;
+        font-size: 60px;
+        font-weight: 900;
+        background: linear-gradient(90deg, #b86cff, #6acbff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-top: 70px;
+    }
 
-.subtitle {
-    text-align: center;
-    font-size: 22px;
-    opacity: 0.8;
-    margin-top: -10px;
-    color: #b0b0b0;
-    letter-spacing: 1px;
-}
+    .subtitle {
+        text-align: center;
+        font-size: 22px;
+        opacity: 0.8;
+        margin-top: -10px;
+        color: #b0b0b0;
+        letter-spacing: 1px;
+    }
 
-/* Section title */
-.section-title {
-    font-size: 28px;
-    margin-top: 40px;
-    font-weight: 700;
-    text-align: center;
-    color: #8e66ff;
-}
+    .card {
+        display: flex;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 18px;
+        border-radius: 20px;
+        margin-bottom: 18px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        animation: fadein 0.7s ease-in-out;
+        transition: transform 0.3s ease;
+    }
 
-/* Song card */
-.card {
-    display: flex;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 18px;
-    border-radius: 20px;
-    margin-bottom: 18px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    animation: fadein 0.7s ease-in-out;
-    transition: transform 0.3s ease;
-}
+    .card:hover {
+        transform: scale(1.05) translateY(-5px);
+    }
 
-.card:hover {
-    transform: scale(1.05) translateY(-5px);
-}
+    .card-left {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.card-left {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .album-img-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        background: #3a3a3a;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 36px;
+        color: #fff;
+    }
 
-.album-img-placeholder {
-    width: 100px;
-    height: 100px;
-    border-radius: 16px;
-    background: #3a3a3a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 36px;
-    color: #fff;
-}
+    .card-right {
+        margin-left: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 
-.card-right {
-    margin-left: 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
+    .song-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+    }
 
-.song-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-}
+    .song-artist {
+        font-size: 16px;
+        opacity: 0.7;
+        margin-bottom: 8px;
+        color: #b0b0b0;
+    }
 
-.song-artist {
-    font-size: 16px;
-    opacity: 0.7;
-    margin-bottom: 8px;
-    color: #b0b0b0;
-}
+    .listen-btn {
+        display: inline-block;
+        background: #8e66ff;
+        padding: 8px 18px;
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+        margin-top: 10px;
+    }
 
-.listen-btn {
-    display: inline-block;
-    background: #8e66ff;
-    padding: 8px 18px;
-    color: white;
-    text-decoration: none;
-    border-radius: 12px;
-    font-size: 16px;
-    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
-    margin-top: 10px;
-}
+    .listen-btn:hover {
+        background: #7c55e6;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+    }
 
-.listen-btn:hover {
-    background: #7c55e6;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
-}
+    @keyframes fadein {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Now playing bar */
-.now-playing {
-    margin-top: 30px;
-    font-size: 18px;
-    background: #1f1f1f;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    color: #fff;
-}
-
-.np-label {
-    font-weight: 700;
-    color: #b17cff;
-}
-
-/* Animation */
-@keyframes fadein {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Sidebar */
-.sidebar-title {
-    font-size: 28px;
-    font-weight: 800;
-    color: #8e66ff;
-}
-
-.sidebar-sub {
-    opacity: 0.7;
-    color: #b0b0b0;
-}
-
-/* Floating icons */
-.floating-icon,
-.floating-icon2 {
-    position: fixed;
-    font-size: 30px;
-    opacity: 0.6;
-    animation: float 3s infinite ease-in-out;
-    z-index: 999;
-    pointer-events: none;
-}
-
-.floating-icon { top: 20px; right: 20px; }
-.floating-icon2 { bottom: 20px; left: 20px; }
-
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(10px); }
-    100% { transform: translateY(0px); }
-}
-
-/* Chatbox */
-.chatbox {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 20px;
-    margin-top: 30px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
-}
-
-.chatbox input[type="text"] {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    border: none;
-    padding: 12px;
-    width: 80%;
-    font-size: 16px;
-    color: white;
-}
-
-.chatbox button {
-    background-color: #8e66ff;
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 12px;
-    border: none;
-    color: white;
-    transition: background 0.3s;
-}
-
-.chatbox button:hover {
-    background-color: #7c55e6;
-}
     </style>
 """, unsafe_allow_html=True)
+
+# Streamlit app content
+st.title("🎵 VibeChecker")
+st.subheader("Your Personal AI Music Curator")
+
+# Example content to test the layout
+st.write("This is a test of the new style!")
+
+# Create a sample song card
+col1, col2 = st.columns([1, 3])
+
+with col1:
+    st.markdown("<div class='album-img-placeholder'>💿</div>", unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+        <div class="card-right">
+            <div class="song-title">Song Title</div>
+            <div class="song-artist">Artist Name</div>
+            <a class="listen-btn" href="https://www.youtube.com">▶️ Listen</a>
+        </div>
+    """, unsafe_allow_html=True)
 
 # --- 4. API SETUP ---
 try:
