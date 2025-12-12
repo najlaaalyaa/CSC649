@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import random
 import time
-import os
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="VibeChecker", page_icon="🎵", layout="wide")
@@ -171,4 +170,3 @@ with st.sidebar:
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
-
