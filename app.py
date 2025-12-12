@@ -68,7 +68,7 @@ def display_playlist(mood):
         yt_query = f"https://www.youtube.com/results?search_query={title}+{artist}".replace(" ", "+")
         st.markdown(
             f"""
-            <div class='card'>
+            <div class='song-card'>
                 <img src='https://via.placeholder.com/90' class='album-img'>
                 <div class='card-right'>
                     <div class='song-title'>{title}</div>
@@ -165,3 +165,4 @@ with st.sidebar:
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
+
