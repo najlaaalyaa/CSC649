@@ -4,7 +4,7 @@ import json
 import base64
 import random
 
-# --- 1. SETUP PAGE ---
+# --- 1. SETUP PAGE CONFIG ---
 st.set_page_config(page_title="VibeChecker", page_icon="🎵", layout="wide")
 
 # --- 2. IMAGE LOADER ---
@@ -176,17 +176,12 @@ def get_vibe_check(mood):
     try:
         res = requests.post(url, headers=headers, json=data)
         if res.status_code == 200:
-            print("API response:", res.json())  # Debug print
             text = res.json()['candidates'][0]['content']['parts'][0]['text']
             clean_json = text.replace("```json", "").replace("```", "").strip()
             return json.loads(clean_json)
-        else:
-            print(f"Error: {res.status_code} - {res.text}")  # Debug print for error response
-            return None  # Return None if there was an error
-    except Exception as e:
-        print(f"Exception occurred: {e}")  # Exception handling
-        return None  # Return None if an exception occurred
-
+    except:
+        return None
+    return None
 
 # --- 6. SIDEBAR ---
 with st.sidebar:
@@ -274,4 +269,3 @@ if st.session_state.playlist:
             <a href="{song.get('link', 'https://www.youtube.com')}" target="_blank" class="listen-btn">▶ Listen</a>
         </div>
         """, unsafe_allow_html=True)
-        
