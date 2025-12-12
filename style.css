@@ -181,3 +181,93 @@ body {
     opacity: 0.7;
 }
 
+
+/* Floating Icons */
+.floating-icon,
+.floating-icon2 {
+    position: fixed;
+    font-size: 28px;
+    opacity: 0.6;
+    animation: float 3s infinite ease-in-out;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.floating-icon { top: 20px; right: 20px; }
+.floating-icon2 { bottom: 20px; left: 20px; }
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Input box for mood */
+.stTextInput input {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    padding: 12px;
+    font-size: 18px;
+    width: 70%;
+    border-radius: 10px;
+    border: 1px solid #6acbff;
+    outline: none;
+    transition: 0.3s;
+}
+
+.stTextInput input:focus {
+    border-color: #ff4c8f;
+    box-shadow: 0 0 10px rgba(255, 76, 143, 0.5);
+}
+
+/* Sidebar section */
+.sidebar {
+    background-color: #1f1f1f;
+    color: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    margin-right: 25px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar:hover {
+    transform: translateX(-5px);
+}
+
+.sidebar .sidebar-item {
+    font-size: 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+}
+
+.sidebar .sidebar-item:hover {
+    color: #8e66ff;
+}
+
+/* Surprise button */
+.surprise-btn {
+    display: inline-block;
+    background: #ff6f61;
+    padding: 12px 24px;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.surprise-btn:hover {
+    background: #ff5733;
+    transform: translateY(-3px);
+}
+
+/* Floating Animation */
+@keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(12px); }
+    100% { transform: translateY(0px); }
+}
+</style>
+
+can u modify the code so tht it looks like the picture i gave but dont change the sidebar
