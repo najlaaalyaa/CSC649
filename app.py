@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import base64
 
 # --- 1. SETUP PAGE CONFIG ---
 st.set_page_config(page_title="VibeChecker", page_icon="🎵", layout="centered")
@@ -119,4 +118,3 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
             
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
-
