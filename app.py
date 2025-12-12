@@ -137,3 +137,38 @@ if user_mood:
 # --- Generate Results ---
 if clicked:
     display_playlist(clicked)
+
+# --- SIDEBAR ---
+with st.sidebar:
+    st.markdown("<div class='sidebar-container'>", unsafe_allow_html=True)
+
+    st.markdown("<div class='sidebar-title'>🎧 Vibe Menu</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-sub'>Find the perfect playlist for your mood</div>", unsafe_allow_html=True)
+
+    # Mood buttons
+    mood_list = [
+        ("⚡ Energetic", "Energetic"),
+        ("🟣 Melancholy", "Melancholy"),
+        ("🧘 Chill", "Chill"),
+        ("💔 Heartbroken", "Heartbroken"),
+        ("🔥 Angry", "Angry"),
+        ("🌸 Calm", "Calm"),
+        ("❤️ Romantic", "Romantic")
+    ]
+
+    for label, value in mood_list:
+        if st.button(label, key=value, use_container_width=True):
+            clicked = value
+
+    st.markdown("<br><h4 style='color:#b86cff;'>✨ Randomizer</h4>", unsafe_allow_html=True)
+
+    if st.button("🎲 Surprise Me", use_container_width=True):
+        clicked = random.choice([v for _, v in mood_list])
+
+    st.markdown(
+        "<div class='sidebar-footer'>VibeChecker 2025 • Powered by Gemini AI</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
